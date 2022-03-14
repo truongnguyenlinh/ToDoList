@@ -23,10 +23,25 @@ class MainActivity : AppCompatActivity() {
             TodoDatabase.getInstance(this)
         }
 
+        val editText = findViewById<EditText>(R.id.editText)
+        val listView = findViewById<ListView>(R.id.listView)
+        val addButton = findViewById<Button>(R.id.addButton)
+        val deleteButton = findViewById<Button>(R.id.deleteButton)
+        val clearButton = findViewById<Button>(R.id.clearButton)
+        listView.adapter = adapter
+
         db.todoDao().getAll().observe(this, Observer {
             if (!it.isNullOrEmpty()) {
                 itemList.clear()
                 itemList.addAll(it)
+                it.forEach { i ->
+                    val pos = adapter.getPosition(i)
+                    if (i.is_checked) {
+                        listView.setItemChecked(pos, true)
+                    } else {
+                        listView.setItemChecked(pos, false)
+                    }
+                }
                 adapter.notifyDataSetChanged()
             } else {
                 itemList.clear()
@@ -34,13 +49,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        val editText = findViewById<EditText>(R.id.editText)
-        val listView = findViewById<ListView>(R.id.listView)
-        val addButton = findViewById<Button>(R.id.addButton)
-        val deleteButton = findViewById<Button>(R.id.deleteButton)
-        val clearButton = findViewById<Button>(R.id.clearButton)
-
-        listView.adapter = adapter
         addButton.setOnClickListener {
             val input = editText.text.toString()
             if (input.isNotEmpty()) {
@@ -74,6 +82,12 @@ class MainActivity : AppCompatActivity() {
 
         clearButton.setOnClickListener {
             itemList.clear()
+            adapter.notifyDataSetChanged()
+        }
+
+        listView.setOnItemClickListener { adapterView, view, pos, id ->
+            itemList[pos].is_checked = !itemList[pos].is_checked
+            db.todoDao().updateTodo(itemList[pos])
             adapter.notifyDataSetChanged()
         }
     }

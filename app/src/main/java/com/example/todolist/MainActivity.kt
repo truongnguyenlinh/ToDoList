@@ -81,6 +81,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         clearButton.setOnClickListener {
+            itemList.forEach { i ->
+                db.todoDao().delete(i)
+            }
             itemList.clear()
             adapter.notifyDataSetChanged()
         }

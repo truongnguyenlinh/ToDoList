@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
             var item = count - 1
             while (item >= 0) {
                 if (position.get(item)) {
+                    db.todoDao().delete(itemList[item])
                     adapter.remove(itemList[item])
                 }
                 item--
@@ -75,12 +76,5 @@ class MainActivity : AppCompatActivity() {
             itemList.clear()
             adapter.notifyDataSetChanged()
         }
-
-//        listView.setOnItemClickListener { adapterView, view, pos, id ->
-//            val obj = itemList[pos]
-//            obj.is_checked = true
-//            db.todoDao().updateTodo(obj)
-//            adapter.notifyDataSetChanged()
-//        }
     }
 }

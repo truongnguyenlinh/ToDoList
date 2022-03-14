@@ -7,6 +7,8 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
+import android.widget.Toast
+import androidx.lifecycle.Observer
 
 
 class MainActivity : AppCompatActivity() {
@@ -14,8 +16,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val itemList = arrayListOf<String>()
+        val itemList = arrayListOf<Todo>()
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_checked, itemList)
+
+        val db by lazy {
+            TodoDatabase.getInstance(this)
+        }
+
+        db.todoDao().getAll().observe(this, Observer {
+            if (!it.isNullOrEmpty()) {
+                itemList.clear()
+                itemList.addAll(it)
+                adapter.notifyDataSetChanged()
+            } else {
+                itemList.clear()
+                adapter.notifyDataSetChanged()
+            }
+        })
 
         val editText = findViewById<EditText>(R.id.editText)
         val listView = findViewById<ListView>(R.id.listView)
@@ -25,9 +42,19 @@ class MainActivity : AppCompatActivity() {
 
         listView.adapter = adapter
         addButton.setOnClickListener {
-            itemList.add(editText.text.toString())
-            adapter.notifyDataSetChanged()
-            editText.text.clear()
+            val input = editText.text.toString()
+            if (input.isNotEmpty()) {
+                db.todoDao().insert(Todo(0, editText.text.toString(), is_checked=false))
+                itemList.add(Todo(0, editText.text.toString(), is_checked=false))
+                adapter.notifyDataSetChanged()
+                editText.text.clear()
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    "Enter a valid task",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
 
         deleteButton.setOnClickListener {
@@ -48,5 +75,12 @@ class MainActivity : AppCompatActivity() {
             itemList.clear()
             adapter.notifyDataSetChanged()
         }
+
+//        listView.setOnItemClickListener { adapterView, view, pos, id ->
+//            val obj = itemList[pos]
+//            obj.is_checked = true
+//            db.todoDao().updateTodo(obj)
+//            adapter.notifyDataSetChanged()
+//        }
     }
 }
